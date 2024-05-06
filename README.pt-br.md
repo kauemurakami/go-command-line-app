@@ -51,7 +51,7 @@ Com isso precisamos retornar um tipo igual ```*cli.App```, pra isso criamos a va
 Mas antes de retornar o ```app```, temos que configurar algumas coisas:  
 ```go
 func Gerar() *cli.App {
-	app := cli.NewApp()
+	app := cli.NewApp()                        //generate instance of *cli.App
 	app.Name = "Commanda Line Applications"    //nome
 	app.Usage = "Search IP's and servers name" //utilização
 	return app
@@ -98,4 +98,111 @@ if erro != nil {
   log.Fatar(erro)
 }
 ```
-Mas podemos fazer isso direto na atribuição.  
+Mas podemos fazer isso direto na atribuição.<br/><br/>
+
+
+*Adicionando busca de IP por host/domínio na função Gerar*  
+Em seu arquivo ```app/app.go``` faça as alterações e falaremos após:  
+```go
+...
+func Gerar() *cli.App {
+	app := cli.NewApp()
+	app.Name = "Commanda Line Applications"    // nome
+	app.Usage = "Search IP's and servers name" // utilização
+	// Add commands use this property, it is slice of the commands
+	app.Commands = []cli.Command{
+		{
+			Name:  "ip", // nome do comando
+      //descrição do uso
+			Usage: "Search IP's of the address of the internet www.google.com",
+      // flags --<flag> <value> que vamos criar/usar
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "host", // nome da flag
+					Value: "google.com.br", // valor padrão
+				},
+			},
+			Action: searchIps, // ação/função quando comando for executado
+		},
+	}
+	return app
+}
+```
+Podemos ver algumas configurações e funcionalidades adicionadas em nosso ```app```, criamos então a funcionalidade ```ip```, com um parâmetro via ```flag``` chamado ```host```, com um valor padrão, caso nenhum argumento seja passado, no nosso caso o google.  
+Agora nossa função ```searchIps```, vamos criar ela fora do escopo da função ```Gerar()```:  
+```go
+.......
+		Action: searchIps, // ação/função quando comando for executado
+		},
+	}
+	return app
+}
+
+func searchIps(c *cli.Context) {
+	host := c.String("host") // recebemos o valor passado com a flag --host <host-value>
+  
+  // usamos o pacakge net para fazer a busca do ip
+	ips, erro := net.LookupIP(host) 
+  // caso tudo corra bem receberemos na variáel ips um slice de []net.IP
+  // em caso de erro recebemos ele e damos outro log.Fatal(erro)
+	if erro != nil {
+		log.Fatal(erro)
+	}
+  
+  // vamos percorrer esse slice de ips para recuperarmos cada ip contido em ips
+  // e vamos mostrar isso na linha comando com um print comum
+	for _,ip := range ips {
+		fmt.Println(ip)
+	}
+}
+```
+Comentei linha por linha para melhor entendimento, agora vamos rodar esse nosso comando criado.  
+```shell
+$ go run main.go ip --host amazon.com.br
+```
+Caso tenha passado o host corretamente você deve ver um ou mais endereços de ip como output, usando ```amazon.com.br``` recebi os seguintes resultados.  
+```json
+54.239.26.87
+52.94.225.243
+72.21.203.171
+54.239.26.87
+52.94.225.243
+72.21.203.171
+```  
+Caso rode apenas ```$go run main.go ip``` receberá o IP do goole que definimos como padrão.<br/><br/>
+
+*Busca por servidor*  
+Inicialmente vamos começar alterando a função ```Gerar()```, atribuindo as Flags em uma variável ```flags```  
+```go
+......
+	flags := []cli.Flag{
+		cli.StringFlag{
+			Name:  "host",
+			Value: "google.com.br",
+		},
+	}
+	// Add commands use this property, it is slice of the commands
+	app.Commands = []cli.Command{
+		//busca por ip
+    {
+			Name:   "ip", // command name
+			Usage:  "Search IP's of the address of the internet www.google.com",
+			Flags:  flags,
+			Action: searchIps,
+		},
+    //busca por servidor
+    {
+			Name:   "servers",
+			Usage:  "Search host server name",
+			Flags:  flags,
+			Action: searchHostServers,
+		},
+  }
+  ......
+```
+Repare que fazemos os mesmos passos, a única diferença é que usamos uma função diferente do nosso package ```net```  
+
+Para rodar agora:  
+```shell
+go run main.go servers --host amazon.com.br
+```
