@@ -207,3 +207,8 @@ To run now:
 ```shell
 go run main.go servers --host amazon.com.br
 ```
+### Bônus
+Function to create a ```path``` and ```file.go```, run:  
+```shell
+$  go run main.go create --dirname <name>
+```

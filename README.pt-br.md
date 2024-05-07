@@ -206,3 +206,9 @@ Para rodar agora:
 ```shell
 go run main.go servers --host amazon.com.br
 ```
+### Bônus
+Função para criar um ```diretório``` e ```arquivo.go```, run:  
+```shell
+$  go run main.go create --dirname <name>
+```
+O arquivo ```.go``` terá o mesmo nome do ```diretório``` setado após ```--dirname```. 

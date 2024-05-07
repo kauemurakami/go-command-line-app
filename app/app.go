@@ -75,6 +75,7 @@ func searchIps(c *cli.Context) {
 	}
 }
 
+// bonus function
 func createDirectory(c *cli.Context) {
 	dirName := c.String("dirname") // Obtém o nome do diretório da flag --dirname
 
