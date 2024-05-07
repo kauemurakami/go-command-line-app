@@ -96,13 +96,13 @@ func createDirectory(c *cli.Context) {
 	}
 
 	// Conteúdo do arquivo .go
-	content := `package packagename
+	content := fmt.Sprintf(`package %s
 
 import "fmt"
 
 func main() {
     fmt.Println("Hello, world!")
-}`
+}`, dirName)
 
 	// Escreve o conteúdo no arquivo
 	_, err = file.WriteString(content)

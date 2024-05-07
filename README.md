@@ -208,7 +208,65 @@ To run now:
 go run main.go servers --host amazon.com.br
 ```
 ### Bônus
-Function to create a ```path``` and ```file.go```, run:  
+Function to create a ```directory``` and ```file.go```, first we will add a ```cli.Command```, called ```create```, then we will add a new function in ```app.go```, outside the scope of the ```Generate()``` function, as well as the other methods:  
+```go
+...
+app.Commands = []cli.Command{
+		{
+			Name:   "ip", // command name
+			Usage:  "Search IP's of the address of the internet www.google.com",
+			Flags:  flags,
+			Action: searchIps,
+		},
+		...
+add>{
+			Name:   "create",
+			Usage:  "Create a new directory with a .go file inside",
+			Flags:  flags,
+			Action: createDirectory,
+		}, << 
+...
+// bonus function 
+func createDirectory(c *cli.Context) {
+	dirName := c.String("dirname") // Gets the directory name from the --dirname flag
+
+	if dirName == "" {
+		fmt.Println("Please provide a directory name using --dirname flag.")
+		return
+	}
+
+	err := os.Mkdir(dirName, 0755) // Create Folder/Directory
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fileName := filepath.Join(dirName, dirName+".go") // Creates the file name with .go extension
+	file, err := os.Create(fileName)                  // Create file
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Add content to file .go
+	content := fmt.Sprintf(`package %s
+
+import "fmt"
+
+func main() {
+    fmt.Println("Hello, world!")
+}`, dirName)
+
+	// Write the content to the file
+	_, err = file.WriteString(content)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	fmt.Printf("Directory '%s' and file '%s' created successfully.\n", dirName, fileName)
+}
+```
+Run:  
 ```shell
 $  go run main.go create --dirname <name>
 ```
+The ```.go``` file will have the same name as the ```directory``` set after ```--dirname``` and will come with the basic contents of a ```.go``` file , with the package also following the ```dirname``` nomenclature.

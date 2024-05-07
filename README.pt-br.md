@@ -207,8 +207,65 @@ Para rodar agora:
 go run main.go servers --host amazon.com.br
 ```
 ### Bônus
-Função para criar um ```diretório``` e ```arquivo.go```, run:  
+Função para criar um ```diretório``` e ```arquivo.go```, primeiramente vamos adicionar um ```cli.Command```, chamado ```create```, depois vamos sadicionar uma nova função em ```app.go```, fora do escopo da função ```Gerar()```, assim como os outros métodos:  
+```go
+...
+app.Commands = []cli.Command{
+		{
+			Name:   "ip", // command name
+			Usage:  "Search IP's of the address of the internet www.google.com",
+			Flags:  flags,
+			Action: searchIps,
+		},
+		...
+add>{
+			Name:   "create",
+			Usage:  "Create a new directory with a .go file inside",
+			Flags:  flags,
+			Action: createDirectory,
+		}, << 
+...
+// bonus function 
+func createDirectory(c *cli.Context) {
+	dirName := c.String("dirname") // Obtém o nome do diretório da flag --dirname
+
+	if dirName == "" {
+		fmt.Println("Please provide a directory name using --dirname flag.")
+		return
+	}
+
+	err := os.Mkdir(dirName, 0755) // Cria o diretório
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fileName := filepath.Join(dirName, dirName+".go") // Cria o nome do arquivo com extensão .go
+	file, err := os.Create(fileName)                  // Cria o arquivo
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Conteúdo do arquivo .go
+	content := fmt.Sprintf(`package %s
+
+import "fmt"
+
+func main() {
+    fmt.Println("Hello, world!")
+}`, dirName)
+
+	// Escreve o conteúdo no arquivo
+	_, err = file.WriteString(content)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	fmt.Printf("Directory '%s' and file '%s' created successfully.\n", dirName, fileName)
+}
+```
+Run:  
 ```shell
 $  go run main.go create --dirname <name>
 ```
-O arquivo ```.go``` terá o mesmo nome do ```diretório``` setado após ```--dirname```. 
+O arquivo ```.go``` terá o mesmo nome do ```diretório``` setado após ```--dirname``` e virá com o conteúdo básico de um arquivo ```.go```, com o package seguindo também a nomenclatura do ```dirname```. 
